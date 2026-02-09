@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:docs": "npm run build && node scripts/copy-plugin-to-docs.js",
+    "copy-to-docs": "node scripts/copy-plugin-to-docs.js",
     "preview": "vite preview"
   },
   "dependencies": {
