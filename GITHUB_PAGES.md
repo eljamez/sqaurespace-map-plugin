@@ -18,12 +18,15 @@ Use the URL that matches your actual repo name.
 1. Open your repo on GitHub.
 2. Go to **Settings** → **Pages** (left sidebar).
 3. Under **Build and deployment**:
-   - **Source:** choose **Deploy from a branch**.
+   - **Source:** choose **Deploy from a branch** (do not use "GitHub Actions" unless you have a workflow that copies `index.html` into the deploy folder).
    - **Branch:** e.g. `main` (or the branch you use).
-   - **Folder:** choose **/ (root)**.
+   - **Folder:** choose **/ (root)** so GitHub serves the repo root, where `index.html` lives.  
+     Alternatively choose **/docs**; this repo also has `docs/index.html`, so either folder will work.
 4. Click **Save**.
 
-The landing page is the **root `index.html`** in this repo, so deploying from the root will serve it.
+GitHub needs an **index.html** at the top level of whatever folder you choose. This repo has:
+- **index.html** at the repo root (use folder **/ (root)**).
+- **docs/index.html** (use folder **/docs**).
 
 ## 3. Push and wait
 
