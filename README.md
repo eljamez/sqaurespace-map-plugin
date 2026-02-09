@@ -121,7 +121,7 @@ The hash in the filename may change when you rebuild.
 
 Upload the built script to a host that serves it over HTTPS, for example:
 
-- **GitHub Pages**: put the file in a repo and enable Pages.
+- **GitHub Pages**: Use the **docs** folder: enable Pages → “Deploy from a branch” → choose the branch and **/docs** as the folder. The repo includes a landing page at `docs/index.html` with instructions and a copy-to-clipboard embed code. Copy `dist/assets/index-XXXXXXXX.js` to `docs/assets/map-plugin.js` (or keep the hashed name and update the landing page) so the script is at `https://yourusername.github.io/repo/assets/map-plugin.js`.
 - **Netlify / Vercel**: drag the `dist` folder or connect the repo and set build to `npm run build` and publish `dist`.
 - **Your own server or CDN**: copy `dist/assets/index-*.js` and serve it at a stable URL.
 
