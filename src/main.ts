@@ -58,10 +58,10 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
-/** CSV URL for a sheet published to the web (File → Share → Publish to web). */
+/** CSV URL for a sheet (Sheet ID or Published ID) or full published URL. */
 function getCsvUrl(sheetId: string): string {
   const s = sheetId.trim();
-  // Full published URL: use as-is; add ?output=csv if /pub has no query
+  // Full URL: use as-is; add ?output=csv if /pub has no query
   if (s.startsWith("http://") || s.startsWith("https://")) {
     if (s.includes("/pub") && !s.includes("output=csv")) {
       return s.includes("?") ? `${s}&output=csv` : `${s}?output=csv`;
@@ -69,10 +69,15 @@ function getCsvUrl(sheetId: string): string {
     return s;
   }
 
-  console.log("s", s);
+  // Published ID (from File → Share → Publish to web; format 2PACX-...)
+  // Requires /d/e/{id}/pub?output=csv
+  if (s.startsWith("2PACX-")) {
+    return `https://docs.google.com/spreadsheets/d/e/${encodeURIComponent(s)}/pub?output=csv`;
+  }
 
-  // Published ID (from File → Share → Publish to web; starts with 2PACX-)
-  return `https://docs.google.com/spreadsheets/d/e/${encodeURIComponent(s)}/pub?output=csv`;
+  // Sheet ID (from spreadsheet edit URL /d/1ABC.../edit)
+  // Requires /d/{id}/gviz/tq?tqx=out:csv — /d/e/ is invalid for Sheet IDs
+  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(s)}/gviz/tq?tqx=out:csv`;
 }
 
 interface ParseLocationsResult {
