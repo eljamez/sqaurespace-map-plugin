@@ -68,12 +68,11 @@ function getCsvUrl(sheetId: string): string {
     }
     return s;
   }
+
+  console.log("s", s);
+
   // Published ID (from File → Share → Publish to web; starts with 2PACX-)
-  if (s.includes("2PACX-")) {
-    return `https://docs.google.com/spreadsheets/d/e/${encodeURIComponent(s)}/pub?output=csv`;
-  }
-  // Regular sheet ID (from edit URL: /d/{id}/edit)
-  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(s)}/gviz/tq?tqx=out:csv`;
+  return `https://docs.google.com/spreadsheets/d/e/${encodeURIComponent(s)}/pub?output=csv`;
 }
 
 interface ParseLocationsResult {
