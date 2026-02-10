@@ -60,7 +60,20 @@ function escapeHtml(text: string): string {
 
 /** CSV URL for a sheet published to the web (File → Share → Publish to web). */
 function getCsvUrl(sheetId: string): string {
-  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:csv`;
+  const s = sheetId.trim();
+  // Full published URL: use as-is; add ?output=csv if /pub has no query
+  if (s.startsWith("http://") || s.startsWith("https://")) {
+    if (s.includes("/pub") && !s.includes("output=csv")) {
+      return s.includes("?") ? `${s}&output=csv` : `${s}?output=csv`;
+    }
+    return s;
+  }
+  // Published ID (from File → Share → Publish to web; starts with 2PACX-)
+  if (s.includes("2PACX-")) {
+    return `https://docs.google.com/spreadsheets/d/e/${encodeURIComponent(s)}/pub?output=csv`;
+  }
+  // Regular sheet ID (from edit URL: /d/{id}/edit)
+  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(s)}/gviz/tq?tqx=out:csv`;
 }
 
 interface ParseLocationsResult {
@@ -118,22 +131,37 @@ function parseLocations(csvText: string): ParseLocationsResult {
       continue;
     }
 
-    console.warn("[MapPlugin] Skipping row with no coordinates or address:", raw);
+    console.warn(
+      "[MapPlugin] Skipping row with no coordinates or address:",
+      raw,
+    );
   }
 
   return { withCoords, needsGeocode };
 }
 
 /** In-memory + localStorage cache for geocode results (avoids repeated API calls). */
-function getGeocodeCache(): Record<string, { lat: number; lng: number; ts: number }> {
+function getGeocodeCache(): Record<
+  string,
+  { lat: number; lng: number; ts: number }
+> {
   try {
     const raw = localStorage.getItem(GEOCODE_CACHE_KEY);
     if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, { lat: number; lng: number; ts: number }>;
+    const parsed = JSON.parse(raw) as Record<
+      string,
+      { lat: number; lng: number; ts: number }
+    >;
     const now = Date.now();
     const out: Record<string, { lat: number; lng: number; ts: number }> = {};
     for (const [key, value] of Object.entries(parsed)) {
-      if (value && typeof value.lat === "number" && typeof value.lng === "number" && value.ts && now - value.ts < GEOCODE_CACHE_TTL_MS) {
+      if (
+        value &&
+        typeof value.lat === "number" &&
+        typeof value.lng === "number" &&
+        value.ts &&
+        now - value.ts < GEOCODE_CACHE_TTL_MS
+      ) {
         out[key] = value;
       }
     }
@@ -147,7 +175,7 @@ function setGeocodeCacheEntry(
   cache: Record<string, { lat: number; lng: number; ts: number }>,
   address: string,
   lat: number,
-  lng: number
+  lng: number,
 ): void {
   const key = address.trim().toLowerCase();
   cache[key] = { lat, lng, ts: Date.now() };
@@ -165,7 +193,7 @@ function cacheKey(address: string): string {
 /** Geocode a single address; uses cache when available. Requires Maps API already loaded. */
 async function geocodeAddress(
   address: string,
-  cache: Record<string, { lat: number; lng: number; ts: number }>
+  cache: Record<string, { lat: number; lng: number; ts: number }>,
 ): Promise<{ lat: number; lng: number } | null> {
   const key = cacheKey(address);
   const cached = cache[key];
@@ -194,13 +222,19 @@ async function geocodeAddress(
 /** Resolve rows that only have an address into LocationRow[] via geocoding (with cache). */
 async function resolveAddressRows(
   rows: RowNeedingGeocode[],
-  cache: Record<string, { lat: number; lng: number; ts: number }>
+  cache: Record<string, { lat: number; lng: number; ts: number }>,
 ): Promise<LocationRow[]> {
   const resolved: LocationRow[] = [];
   for (const row of rows) {
     const coords = await geocodeAddress(row.address, cache);
     if (!coords) {
-      console.warn("[MapPlugin] Geocoding failed for address:", row.address, "(", row.name, ")");
+      console.warn(
+        "[MapPlugin] Geocoding failed for address:",
+        row.address,
+        "(",
+        row.name,
+        ")",
+      );
       continue;
     }
     resolved.push({
@@ -217,22 +251,28 @@ async function resolveAddressRows(
 
 function loadGoogleMapsScript(apiKey: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (typeof (window as unknown as { google?: { maps: unknown } }).google !== "undefined") {
+    if (
+      typeof (window as unknown as { google?: { maps: unknown } }).google !==
+      "undefined"
+    ) {
       resolve();
       return;
     }
 
     const existing = document.querySelector(
-      'script[src^="https://maps.googleapis.com/maps/api/js"]'
+      'script[src^="https://maps.googleapis.com/maps/api/js"]',
     );
     if (existing) {
       existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () => reject(new Error("Google Maps script failed to load")));
+      existing.addEventListener("error", () =>
+        reject(new Error("Google Maps script failed to load")),
+      );
       return;
     }
 
     const callbackName = "mapPluginMapsCallback";
-    (window as unknown as Record<string, () => void>)[callbackName] = () => resolve();
+    (window as unknown as Record<string, () => void>)[callbackName] = () =>
+      resolve();
 
     const script = document.createElement("script");
     script.async = true;
@@ -273,11 +313,13 @@ async function initMap(
   locations: LocationRow[],
   zoomLevel: number,
   apiKey: string,
-  mapId?: string
+  mapId?: string,
 ): Promise<void> {
   await loadGoogleMapsScript(apiKey);
 
-  const { Map } = (await google.maps.importLibrary("maps")) as google.maps.MapsLibrary;
+  const { Map } = (await google.maps.importLibrary(
+    "maps",
+  )) as google.maps.MapsLibrary;
 
   const mapOptions: google.maps.MapOptions = {
     zoom: zoomLevel,
@@ -293,10 +335,12 @@ async function initMap(
   const bounds = new google.maps.LatLngBounds();
 
   const useAdvancedMarkers = Boolean(mapId);
-  let AdvancedMarkerElement: typeof google.maps.marker.AdvancedMarkerElement | null = null;
+  let AdvancedMarkerElement:
+    | typeof google.maps.marker.AdvancedMarkerElement
+    | null = null;
   if (useAdvancedMarkers) {
     const markerLib = (await google.maps.importLibrary(
-      "marker"
+      "marker",
     )) as google.maps.MarkerLibrary;
     AdvancedMarkerElement = markerLib.AdvancedMarkerElement;
   }
@@ -305,9 +349,10 @@ async function initMap(
     const position = { lat: loc.latitude, lng: loc.longitude };
     bounds.extend(position);
 
-    const marker = useAdvancedMarkers && AdvancedMarkerElement
-      ? new AdvancedMarkerElement({ map, position, title: loc.name })
-      : new google.maps.Marker({ map, position, title: loc.name });
+    const marker =
+      useAdvancedMarkers && AdvancedMarkerElement
+        ? new AdvancedMarkerElement({ map, position, title: loc.name })
+        : new google.maps.Marker({ map, position, title: loc.name });
 
     marker.addListener("click", () => {
       const content = buildInfoWindowContent(loc);
@@ -338,22 +383,27 @@ function run(): void {
   const { sheetId, apiKey, mapContainerId, zoomLevel } = config;
   if (!sheetId || !apiKey || !mapContainerId) {
     console.error(
-      "[MapPlugin] MapPluginConfig must include sheetId, apiKey, and mapContainerId."
+      "[MapPlugin] MapPluginConfig must include sheetId, apiKey, and mapContainerId.",
     );
     return;
   }
 
   const container = document.getElementById(mapContainerId);
   if (!container) {
-    console.error(`[MapPlugin] Map container element #${mapContainerId} not found.`);
+    console.error(
+      `[MapPlugin] Map container element #${mapContainerId} not found.`,
+    );
     return;
   }
 
-  const zoom = typeof zoomLevel === "number" && zoomLevel >= 0 && zoomLevel <= 22 ? zoomLevel : 10;
+  const zoom =
+    typeof zoomLevel === "number" && zoomLevel >= 0 && zoomLevel <= 22
+      ? zoomLevel
+      : 10;
   const mapId = config.mapId;
   const csvUrl = getCsvUrl(sheetId);
 
-  container.innerHTML = "<p class=\"map-plugin-loading\">Loading map…</p>";
+  container.innerHTML = '<p class="map-plugin-loading">Loading map…</p>';
 
   fetch(csvUrl)
     .then((res) => {
@@ -364,7 +414,7 @@ function run(): void {
       const { withCoords, needsGeocode } = parseLocations(text);
       if (withCoords.length === 0 && needsGeocode.length === 0) {
         container.innerHTML =
-          "<p class=\"map-plugin-error\">No valid locations found (need Name + Latitude/Longitude or Address).</p>";
+          '<p class="map-plugin-error">No valid locations found (need Name + Latitude/Longitude or Address).</p>';
         return;
       }
 
@@ -379,7 +429,7 @@ function run(): void {
 
       if (allLocations.length === 0) {
         container.innerHTML =
-          "<p class=\"map-plugin-error\">No valid locations found in the sheet.</p>";
+          '<p class="map-plugin-error">No valid locations found in the sheet.</p>';
         return;
       }
 
@@ -389,7 +439,7 @@ function run(): void {
     .catch((err) => {
       console.error("[MapPlugin]", err);
       container.innerHTML =
-        "<p class=\"map-plugin-error\">Unable to load map. Check the console for details.</p>";
+        '<p class="map-plugin-error">Unable to load map. Check the console for details.</p>';
     });
 }
 

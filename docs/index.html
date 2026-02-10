@@ -1,209 +1,332 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Add a Google Map to your Squarespace site with data from a Google Sheet. Store locators, event venues, and more.">
-  <title>Squarespace Map Plugin — Google Maps from Google Sheets</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #0c0c0e;
-      --bg-elevated: #141418;
-      --border: #27272a;
-      --text: #fafafa;
-      --text-secondary: #a1a1aa;
-      --accent: #22c55e;
-      --accent-hover: #4ade80;
-      --accent-muted: rgba(34, 197, 94, 0.12);
-      --radius: 10px;
-      --radius-sm: 6px;
-      --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-mono: 'DM Mono', ui-monospace, monospace;
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: var(--font-sans);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.65;
-      -webkit-font-smoothing: antialiased;
-      min-height: 100vh;
-    }
-    .site {
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 3rem 1.5rem 4rem;
-    }
-    .hero {
-      text-align: center;
-      padding: 2.5rem 0 3rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .hero h1 {
-      font-size: clamp(1.875rem, 4vw, 2.5rem);
-      font-weight: 700;
-      margin: 0 0 0.75rem;
-      letter-spacing: -0.03em;
-      line-height: 1.2;
-    }
-    .hero .tagline {
-      font-size: 1.125rem;
-      color: var(--text-secondary);
-      margin: 0;
-      max-width: 32ch;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    section {
-      margin: 2.5rem 0;
-    }
-    section h2 {
-      font-size: 1.125rem;
-      font-weight: 600;
-      margin: 0 0 1rem;
-      color: var(--text);
-    }
-    p {
-      margin: 0 0 1rem;
-      color: var(--text-secondary);
-      font-size: 0.9375rem;
-    }
-    a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-    a:hover { color: var(--accent-hover); text-decoration: underline; }
-    code {
-      font-family: var(--font-mono);
-      font-size: 0.8125rem;
-      background: var(--bg-elevated);
-      padding: 0.2em 0.5em;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
-    .card {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem 1.5rem;
-      margin: 1rem 0;
-    }
-    .card table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-    }
-    .card th, .card td {
-      text-align: left;
-      padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .card th { font-weight: 600; color: var(--text); }
-    .card td { color: var(--text-secondary); }
-    .card tr:last-child td { border-bottom: 0; }
-    .embed-box {
-      background: #0a0a0c;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem 1.25rem;
-      margin: 1rem 0;
-      overflow-x: auto;
-    }
-    .embed-box pre {
-      margin: 0;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      line-height: 1.6;
-      color: var(--text-secondary);
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-    .embed-box .url { color: var(--accent); }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-family: inherit;
-      font-size: 0.875rem;
-      font-weight: 500;
-      padding: 0.625rem 1rem;
-      margin-top: 0.75rem;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      background: var(--accent);
-      color: #0c0c0e;
-      transition: background 0.2s, color 0.2s;
-    }
-    .btn:hover { background: var(--accent-hover); }
-    .btn.copied { background: var(--accent-muted); color: var(--accent); }
-    .btn svg { width: 1rem; height: 1rem; flex-shrink: 0; }
-    ul {
-      margin: 0 0 1rem;
-      padding-left: 1.25rem;
-      color: var(--text-secondary);
-      font-size: 0.9375rem;
-    }
-    ul li { margin: 0.35rem 0; }
-    .footer {
-      margin-top: 3.5rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border);
-      text-align: center;
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-    .footer a { color: var(--text-secondary); }
-    .footer a:hover { color: var(--accent); }
-  </style>
-</head>
-<body>
-  <div class="site">
-    <header class="hero">
-      <h1>Squarespace Map Plugin</h1>
-      <p class="tagline">Add a Google Map to your Squarespace site with locations from a Google Sheet.</p>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Add a Google Map to your Squarespace site with data from a Google Sheet. Store locators, event venues, and more."
+    />
+    <title>Squarespace Map Plugin — Google Maps from Google Sheets</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0c0c0e;
+        --bg-elevated: #141418;
+        --border: #27272a;
+        --text: #fafafa;
+        --text-secondary: #a1a1aa;
+        --accent: #22c55e;
+        --accent-hover: #4ade80;
+        --accent-muted: rgba(34, 197, 94, 0.12);
+        --radius: 10px;
+        --radius-sm: 6px;
+        --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: "DM Mono", ui-monospace, monospace;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font-sans);
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+      }
+      .site {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 4rem;
+      }
+      .hero {
+        text-align: center;
+        padding: 2.5rem 0 3rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .hero h1 {
+        font-size: clamp(1.875rem, 4vw, 2.5rem);
+        font-weight: 700;
+        margin: 0 0 0.75rem;
+        letter-spacing: -0.03em;
+        line-height: 1.2;
+      }
+      .hero .tagline {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+        margin: 0;
+        max-width: 32ch;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      section {
+        margin: 2.5rem 0;
+      }
+      section h2 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0 0 1rem;
+        color: var(--text);
+      }
+      p {
+        margin: 0 0 1rem;
+        color: var(--text-secondary);
+        font-size: 0.9375rem;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        color: var(--accent-hover);
+        text-decoration: underline;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.8125rem;
+        background: var(--bg-elevated);
+        padding: 0.2em 0.5em;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .card {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.25rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .card table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+      }
+      .card th,
+      .card td {
+        text-align: left;
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .card th {
+        font-weight: 600;
+        color: var(--text);
+      }
+      .card td {
+        color: var(--text-secondary);
+      }
+      .card tr:last-child td {
+        border-bottom: 0;
+      }
+      .embed-box {
+        background: #0a0a0c;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 1.25rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+      }
+      .embed-box pre {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .embed-box .url {
+        color: var(--accent);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: inherit;
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 0.625rem 1rem;
+        margin-top: 0.75rem;
+        border: none;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        background: var(--accent);
+        color: #0c0c0e;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .btn:hover {
+        background: var(--accent-hover);
+      }
+      .btn.copied {
+        background: var(--accent-muted);
+        color: var(--accent);
+      }
+      .btn svg {
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
+      }
+      ul {
+        margin: 0 0 1rem;
+        padding-left: 1.25rem;
+        color: var(--text-secondary);
+        font-size: 0.9375rem;
+      }
+      ul li {
+        margin: 0.35rem 0;
+      }
+      .footer {
+        margin-top: 3.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+      }
+      .footer a {
+        color: var(--text-secondary);
+      }
+      .footer a:hover {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="site">
+      <header class="hero">
+        <h1>Squarespace Map Plugin</h1>
+        <p class="tagline">
+          Add a Google Map to your Squarespace site with locations from a Google
+          Sheet.
+        </p>
+      </header>
 
-    <section>
-      <h2>What you need</h2>
-      <ul>
-        <li><strong>Google Sheet</strong> — Your locations (name, lat/lng or address, description). Publish it: File → Share → Publish to web → CSV.</li>
-        <li><strong>Google Maps API key</strong> — Enable <a href="https://console.cloud.google.com/apis/library" target="_blank" rel="noopener">Maps JavaScript API</a> (and <a href="https://console.cloud.google.com/apis/library/geocoding-backend.googleapis.com" target="_blank" rel="noopener">Geocoding API</a> if you use addresses). Create an API key in <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Credentials</a>; optionally restrict by HTTP referrer to your Squarespace domain.</li>
-        <li><strong>Hosted script</strong> — The plugin is one JS file. Host it here (GitHub Pages) or elsewhere and use its URL in the embed below.</li>
-      </ul>
-    </section>
+      <section>
+        <h2>What you need</h2>
+        <ul>
+          <li>
+            <strong>Google Sheet</strong> — Your locations (name, lat/lng or
+            address, description). Publish it: File → Share → Publish to web →
+            CSV.
+          </li>
+          <li>
+            <strong>Google Maps API key</strong> — Enable
+            <a
+              href="https://console.cloud.google.com/apis/library"
+              target="_blank"
+              rel="noopener"
+              >Maps JavaScript API</a
+            >
+            (and
+            <a
+              href="https://console.cloud.google.com/apis/library/geocoding-backend.googleapis.com"
+              target="_blank"
+              rel="noopener"
+              >Geocoding API</a
+            >
+            if you use addresses). Create an API key in
+            <a
+              href="https://console.cloud.google.com/apis/credentials"
+              target="_blank"
+              rel="noopener"
+              >Credentials</a
+            >; optionally restrict by HTTP referrer to your Squarespace domain.
+          </li>
+          <li>
+            <strong>Hosted script</strong> — The plugin is one JS file. Host it
+            here (GitHub Pages) or elsewhere and use its URL in the embed below.
+          </li>
+        </ul>
+      </section>
 
-    <section>
-      <h2>Sheet columns</h2>
-      <p>Use these headers in row 1. Each row needs <strong>Name</strong> and either <strong>Latitude + Longitude</strong> or <strong>Address</strong>.</p>
-      <div class="card">
-        <table>
-          <thead>
-            <tr><th>Column</th><th>Required</th><th>Description</th></tr>
-          </thead>
-          <tbody>
-            <tr><td><code>Name</code></td><td>Yes</td><td>Location name</td></tr>
-            <tr><td><code>Latitude</code></td><td>Yes*</td><td>e.g. 40.7128</td></tr>
-            <tr><td><code>Longitude</code></td><td>Yes*</td><td>e.g. -74.0060</td></tr>
-            <tr><td><code>Address</code></td><td>Yes*</td><td>Used if Lat/Lng empty (geocoded)</td></tr>
-            <tr><td><code>Description</code></td><td>No</td><td>Info window text</td></tr>
-            <tr><td><code>LinkURL</code> / <code>LinkText</code></td><td>No</td><td>Optional link in info window</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+      <section>
+        <h2>Sheet ID / URL</h2>
+        <p>
+          You can pass <code>sheetId</code> as: a regular sheet ID
+          (<code>1ABC123...</code> from the edit URL), a published ID
+          (<code>2PACX-1vR0gSO-...</code> from File → Share → Publish to web),
+          or the full published CSV URL
+          (<code>https://docs.google.com/.../pub?output=csv</code>).
+        </p>
 
-    <section>
-      <h2>Embed code for Squarespace</h2>
-      <p>Add a <strong>Code</strong> block, paste the snippet below, then replace <code>YOUR_SHEET_ID</code>, <code>YOUR_GOOGLE_MAPS_API_KEY</code>, and ensure the script URL points to your hosted file. The URL below is based on this page so it works when hosted on GitHub Pages.</p>
-      <div class="embed-box">
-        <pre id="snippet">&lt;div id="sqs-map-container" style="width: 100%; height: 480px;"&gt;&lt;/div&gt;
+        <h2>Sheet columns</h2>
+        <p>
+          Use these headers in row 1. Each row needs <strong>Name</strong> and
+          either <strong>Latitude + Longitude</strong> or
+          <strong>Address</strong>.
+        </p>
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Column</th>
+                <th>Required</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Name</code></td>
+                <td>Yes</td>
+                <td>Location name</td>
+              </tr>
+              <tr>
+                <td><code>Latitude</code></td>
+                <td>Yes*</td>
+                <td>e.g. 40.7128</td>
+              </tr>
+              <tr>
+                <td><code>Longitude</code></td>
+                <td>Yes*</td>
+                <td>e.g. -74.0060</td>
+              </tr>
+              <tr>
+                <td><code>Address</code></td>
+                <td>Yes*</td>
+                <td>Used if Lat/Lng empty (geocoded)</td>
+              </tr>
+              <tr>
+                <td><code>Description</code></td>
+                <td>No</td>
+                <td>Info window text</td>
+              </tr>
+              <tr>
+                <td><code>LinkURL</code> / <code>LinkText</code></td>
+                <td>No</td>
+                <td>Optional link in info window</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Embed code for Squarespace</h2>
+        <p>
+          Add a <strong>Code</strong> block, paste the snippet below, then
+          replace <code>YOUR_SHEET_ID</code>,
+          <code>YOUR_GOOGLE_MAPS_API_KEY</code>, and ensure the script URL
+          points to your hosted file. The URL below is based on this page so it
+          works when hosted on GitHub Pages.
+        </p>
+        <div class="embed-box">
+          <pre
+            id="snippet"
+          >&lt;div id="sqs-map-container" style="width: 100%; height: 480px;"&gt;&lt;/div&gt;
 
 &lt;script&gt;
   window.MapPluginConfig = {
@@ -214,58 +337,116 @@
   };
 &lt;/script&gt;
 &lt;script src="<span class="url" id="script-url">…</span>" defer&gt;&lt;/script&gt;</pre>
-      </div>
-      <button type="button" class="btn" id="copy-btn" aria-label="Copy embed code">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        <span id="copy-label">Copy embed code</span>
-      </button>
-    </section>
+        </div>
+        <button
+          type="button"
+          class="btn"
+          id="copy-btn"
+          aria-label="Copy embed code"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          <span id="copy-label">Copy embed code</span>
+        </button>
+      </section>
 
-    <section>
-      <h2>Hosting the plugin script</h2>
-      <p>Run <code>npm run build</code>; the output is in <code>dist/assets/dev-XXXXXXXX.js</code>. Rename it to <code>map-plugin.js</code> and put it in an <code>assets/</code> folder in this repo (e.g. root <code>assets/</code> or <code>docs/assets/</code>). Then the script URL will be this site's URL + <code>/assets/map-plugin.js</code>.</p>
-    </section>
+      <section>
+        <h2>Hosting the plugin script</h2>
+        <p>
+          Run <code>npm run build</code>; the output is in
+          <code>dist/assets/dev-XXXXXXXX.js</code>. Rename it to
+          <code>map-plugin.js</code> and put it in an
+          <code>assets/</code> folder in this repo (e.g. root
+          <code>assets/</code> or <code>docs/assets/</code>). Then the script
+          URL will be this site's URL + <code>/assets/map-plugin.js</code>.
+        </p>
+      </section>
 
-    <section>
-      <h2>Optional: Map ID</h2>
-      <p>For <a href="https://developers.google.com/maps/documentation/javascript/get-map-id" target="_blank" rel="noopener">Cloud-based map styling</a> and Advanced Markers, create a Map ID in Google Cloud (Map Management) and add to config: <code>mapId: "YOUR_MAP_ID"</code>.</p>
-    </section>
+      <section>
+        <h2>Optional: Map ID</h2>
+        <p>
+          For
+          <a
+            href="https://developers.google.com/maps/documentation/javascript/get-map-id"
+            target="_blank"
+            rel="noopener"
+            >Cloud-based map styling</a
+          >
+          and Advanced Markers, create a Map ID in Google Cloud (Map Management)
+          and add to config: <code>mapId: "YOUR_MAP_ID"</code>.
+        </p>
+      </section>
 
-    <footer class="footer">
-      Created by James at <a href="https://eljamez.com" target="_blank" rel="noopener">eljamez.com</a>
-    </footer>
-  </div>
+      <footer class="footer">
+        Created by James at
+        <a href="https://eljamez.com" target="_blank" rel="noopener"
+          >eljamez.com</a
+        >
+      </footer>
+    </div>
 
-  <script>
-    (function() {
-      var path = window.location.pathname.replace(/\/index\.html$/, '').replace(/\/?$/, '') || '';
-      var base = window.location.origin + path;
-      var scriptUrl = base + '/assets/map-plugin.js';
-      var el = document.getElementById('script-url');
-      if (el) el.textContent = scriptUrl;
+    <script>
+      (function () {
+        var path =
+          window.location.pathname
+            .replace(/\/index\.html$/, "")
+            .replace(/\/?$/, "") || "";
+        var base = window.location.origin + path;
+        var scriptUrl = base + "/assets/map-plugin.js";
+        var el = document.getElementById("script-url");
+        if (el) el.textContent = scriptUrl;
 
-      function embedCode() {
-        var div = '<div id="sqs-map-container" style="width: 100%; height: 480px;"></div>\n\n';
-        var scriptClose = '</scr' + 'ipt>';
-        var config = '<script>\n  window.MapPluginConfig = {\n    sheetId: "YOUR_SHEET_ID",\n    apiKey: "YOUR_GOOGLE_MAPS_API_KEY",\n    mapContainerId: "sqs-map-container",\n    zoomLevel: 10\n  };\n' + scriptClose + '\n';
-        return div + config + '<script src="' + scriptUrl + '" defer>' + scriptClose;
-      }
+        function embedCode() {
+          var div =
+            '<div id="sqs-map-container" style="width: 100%; height: 480px;"></div>\n\n';
+          var scriptClose = "</scr" + "ipt>";
+          var config =
+            '<script>\n  window.MapPluginConfig = {\n    sheetId: "YOUR_SHEET_ID",\n    apiKey: "YOUR_GOOGLE_MAPS_API_KEY",\n    mapContainerId: "sqs-map-container",\n    zoomLevel: 10\n  };\n' +
+            scriptClose +
+            "\n";
+          return (
+            div +
+            config +
+            '<script src="' +
+            scriptUrl +
+            '" defer>' +
+            scriptClose
+          );
+        }
 
-      var btn = document.getElementById('copy-btn');
-      var label = document.getElementById('copy-label');
-      if (btn && label) {
-        btn.addEventListener('click', function() {
-          navigator.clipboard.writeText(embedCode()).then(function() {
-            btn.classList.add('copied');
-            label.textContent = 'Copied!';
-            setTimeout(function() { btn.classList.remove('copied'); label.textContent = 'Copy embed code'; }, 2000);
-          }).catch(function() {
-            label.textContent = 'Copy failed';
-            setTimeout(function() { label.textContent = 'Copy embed code'; }, 2000);
+        var btn = document.getElementById("copy-btn");
+        var label = document.getElementById("copy-label");
+        if (btn && label) {
+          btn.addEventListener("click", function () {
+            navigator.clipboard
+              .writeText(embedCode())
+              .then(function () {
+                btn.classList.add("copied");
+                label.textContent = "Copied!";
+                setTimeout(function () {
+                  btn.classList.remove("copied");
+                  label.textContent = "Copy embed code";
+                }, 2000);
+              })
+              .catch(function () {
+                label.textContent = "Copy failed";
+                setTimeout(function () {
+                  label.textContent = "Copy embed code";
+                }, 2000);
+              });
           });
-        });
-      }
-    })();
-  </script>
-</body>
+        }
+      })();
+    </script>
+  </body>
 </html>

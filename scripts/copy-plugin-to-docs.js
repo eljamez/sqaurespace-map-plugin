@@ -21,7 +21,8 @@ if (!fs.existsSync(distAssets)) {
 }
 
 const files = fs.readdirSync(distAssets).filter((f) => f.endsWith('.js'));
-const mainJs = files.find((f) => /^dev-[A-Za-z0-9_-]+\.js$/.test(f)) || files[0];
+// Vite/Rollup entry naming: dev-HASH.js (dash) or dev.HASH.js (dot); hash is alphanumeric
+const mainJs = files.find((f) => /^dev[-.][A-Za-z0-9_.-]+\.js$/.test(f)) || files[0];
 if (!mainJs) {
   console.error('scripts/copy-plugin-to-docs: no JS file found in dist/assets');
   process.exit(1);

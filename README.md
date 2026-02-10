@@ -6,10 +6,10 @@ A lightweight plugin that displays an interactive **Google Map** on your Squares
 
 ## What You Need
 
-| Requirement | Purpose |
-|-------------|---------|
-| **Google Sheet ID** | The spreadsheet that holds your location data (name, coordinates or address, description, links). |
-| **Google Maps API key** | Used in the browser to load the map and (optionally) geocode addresses. |
+| Requirement              | Purpose                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| **Google Sheet ID**      | The spreadsheet that holds your location data (name, coordinates or address, description, links).   |
+| **Google Maps API key**  | Used in the browser to load the map and (optionally) geocode addresses.                             |
 | **Hosted plugin script** | The built JavaScript file must be served from a URL (e.g. GitHub Pages, Netlify, or your own host). |
 
 No backend or Squarespace Developer Platform is required: you use a **Code Block** (or Code Injection) and point the script at your sheet and API key.
@@ -22,24 +22,24 @@ No backend or Squarespace Developer Platform is required: you use a **Code Block
 
 Create a new Google Sheet and use these **exact column headers** in the first row:
 
-| Column     | Required | Description |
-|-----------|----------|-------------|
-| **Name**  | Yes      | Location name (e.g. store or venue name). |
-| **Latitude**  | Yes* | Latitude (e.g. `40.7128`). |
-| **Longitude** | Yes* | Longitude (e.g. `-74.0060`). |
-| **Address**   | Yes* | Street address. Used only when Latitude/Longitude are empty; the plugin will geocode it. |
-| **Description** | No  | Text shown in the marker’s info window. |
-| **LinkURL**   | No  | URL for a “Learn more” link in the info window. |
-| **LinkText**  | No  | Label for that link (default: “Learn more”). |
+| Column          | Required | Description                                                                              |
+| --------------- | -------- | ---------------------------------------------------------------------------------------- |
+| **Name**        | Yes      | Location name (e.g. store or venue name).                                                |
+| **Latitude**    | Yes\*    | Latitude (e.g. `40.7128`).                                                               |
+| **Longitude**   | Yes\*    | Longitude (e.g. `-74.0060`).                                                             |
+| **Address**     | Yes\*    | Street address. Used only when Latitude/Longitude are empty; the plugin will geocode it. |
+| **Description** | No       | Text shown in the marker’s info window.                                                  |
+| **LinkURL**     | No       | URL for a “Learn more” link in the info window.                                          |
+| **LinkText**    | No       | Label for that link (default: “Learn more”).                                             |
 
 \* Each row must have either **Latitude + Longitude** or **Address**. Rows with only an address are geocoded (and results cached in the browser).
 
 Example:
 
-| Name    | Latitude | Longitude | Address        | Description   | LinkURL | LinkText   |
-|---------|----------|-----------|----------------|---------------|---------|------------|
-| Store 1 | 40.7128   | -74.0060  |                | Downtown NYC  | https://… | Visit store |
-| Store 2 |          |           | 123 Main St…   | Main location | https://… | Website    |
+| Name    | Latitude | Longitude | Address      | Description   | LinkURL   | LinkText    |
+| ------- | -------- | --------- | ------------ | ------------- | --------- | ----------- |
+| Store 1 | 40.7128  | -74.0060  |              | Downtown NYC  | https://… | Visit store |
+| Store 2 |          |           | 123 Main St… | Main location | https://… | Website     |
 
 ### 1.2 Publish the sheet to the web
 
@@ -51,21 +51,18 @@ The plugin reads your sheet as CSV. You must publish it:
 
 Your sheet is now available at a URL that includes its ID.
 
-### 1.3 Get your Sheet ID
+### 1.3 Get your Sheet ID or Published URL
 
-Open your sheet in the browser. The URL looks like:
+You can pass `sheetId` in any of these forms:
 
-```text
-https://docs.google.com/spreadsheets/d/1ABC123xyz/edit
-```
 
-The **Sheet ID** is the long string between `/d/` and `/edit`:
+| Format | Example | Use when |
+|--------|---------|----------|
+| **Sheet ID** (from edit URL) | `1ABC123xyz` | You have the edit URL: `/d/{id}/edit` |
+| **Published ID** (from Publish to web) | `2PACX-1vR0gSO-...` | You published via File → Share → Publish to web |
+| **Full published CSV URL** | `https://docs.google.com/.../pub?output=csv` | You have the exact CSV URL |
 
-```text
-1ABC123xyz
-```
-
-Copy this; you’ll use it as `sheetId` in the plugin config.
+The published format (`/d/e/{id}/pub?output=csv`) is recommended: it's the URL Google gives when you publish a sheet to the web.
 
 ---
 
@@ -145,7 +142,7 @@ You’ll use this full URL in Squarespace (e.g. `https://yourusername.github.io/
     sheetId: "YOUR_SHEET_ID",
     apiKey: "YOUR_GOOGLE_MAPS_API_KEY",
     mapContainerId: "sqs-map-container",
-    zoomLevel: 10
+    zoomLevel: 10,
   };
 </script>
 <script src="https://YOUR-HOSTED-URL/plugin.js" defer></script>
@@ -178,7 +175,7 @@ To use [Cloud-based map styling](https://developers.google.com/maps/documentatio
     apiKey: "YOUR_GOOGLE_MAPS_API_KEY",
     mapContainerId: "sqs-map-container",
     zoomLevel: 10,
-    mapId: "YOUR_MAP_ID"
+    mapId: "YOUR_MAP_ID",
   };
 </script>
 ```
@@ -187,13 +184,13 @@ If you omit `mapId`, the plugin falls back to the legacy map type and standard m
 
 ### 4.3 Config reference
 
-| Property          | Required | Description |
-|-------------------|----------|-------------|
-| `sheetId`         | Yes      | Google Sheet ID (from the sheet URL). |
-| `apiKey`          | Yes      | Google Maps JavaScript API key. |
-| `mapContainerId`  | Yes      | HTML `id` of the div where the map is drawn. |
-| `zoomLevel`       | No       | Initial zoom (0–22). Default: `10`. |
-| `mapId`           | No       | Map ID for Cloud-based styling and Advanced Markers. |
+| Property         | Required | Description                                          |
+| ---------------- | -------- | ---------------------------------------------------- |
+| `sheetId`        | Yes      | Google Sheet ID (from the sheet URL).                |
+| `apiKey`         | Yes      | Google Maps JavaScript API key.                      |
+| `mapContainerId` | Yes      | HTML `id` of the div where the map is drawn.         |
+| `zoomLevel`      | No       | Initial zoom (0–22). Default: `10`.                  |
+| `mapId`          | No       | Map ID for Cloud-based styling and Advanced Markers. |
 
 **Important:** `window.MapPluginConfig` must be defined **before** the script tag that loads the plugin. Keep the config `<script>` block above the `<script src="...">` tag.
 
@@ -214,7 +211,7 @@ If you prefer to inject the script once for the whole site:
     sheetId: "YOUR_SHEET_ID",
     apiKey: "YOUR_GOOGLE_MAPS_API_KEY",
     mapContainerId: "sqs-map-container",
-    zoomLevel: 10
+    zoomLevel: 10,
   };
 </script>
 <script src="https://YOUR-HOSTED-URL/plugin.js" defer></script>
@@ -233,14 +230,14 @@ If you use Code Injection, use one consistent `mapContainerId` (e.g. `sqs-map-co
 ## Troubleshooting
 
 - **“MapPluginConfig is not defined”**  
-  Define `window.MapPluginConfig` in a `<script>` block that runs *before* the plugin script.
+  Define `window.MapPluginConfig` in a `<script>` block that runs _before_ the plugin script.
 
 - **“Map container element #… not found”**  
   The div’s `id` must match `mapContainerId` exactly (e.g. `sqs-map-container`).
 
-- **Map or markers don’t load**  
-  - Check the browser console for errors.  
-  - Confirm the Sheet is **published to the web** (File → Share → Publish to web).  
+- **Map or markers don’t load**
+  - Check the browser console for errors.
+  - Confirm the Sheet is **published to the web** (File → Share → Publish to web).
   - Confirm the Maps JavaScript API (and Geocoding API if using addresses) are enabled and the API key is valid and not restricted in a way that blocks your Squarespace domain.
 
 - **Addresses not showing on the map**  
@@ -253,8 +250,8 @@ If you use Code Injection, use one consistent `mapContainerId` (e.g. `sqs-map-co
 
 ## Development
 
-- **Local dev:** `npm run dev` — use `index.html` and set `sheetId` and `apiKey` in the inline config there.  
-- **Build:** `npm run build` — output in `dist/`.  
+- **Local dev:** `npm run dev` — use `index.html` and set `sheetId` and `apiKey` in the inline config there.
+- **Build:** `npm run build` — output in `dist/`.
 - **Preview build:** `npm run preview` — serve `dist/` locally.
 
 ---
